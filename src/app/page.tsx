@@ -3,6 +3,7 @@ import { useState } from "react";
 
 export default function Home() {
   const [fileContent, setFileContent] = useState("");
+  const [isPreview, setIsPreview] = useState(true);
 
   const handleFileLoad = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -19,9 +20,10 @@ export default function Home() {
   return (
     <div className="min-h-screen p-8">
       <main className="max-w-4xl mx-auto space-y-4">
-        <div>
+        <div className="flex gap-4 items-center">
           <input
             type="file"
+            accept=".html,.htm"
             onChange={handleFileLoad}
             className="block w-full text-sm text-gray-500
               file:mr-4 file:py-2 file:px-4
@@ -31,18 +33,35 @@ export default function Home() {
               hover:file:bg-[#383838]
               dark:hover:file:bg-[#ccc]"
           />
+          <button
+            onClick={() => setIsPreview(!isPreview)}
+            className="px-4 py-2 rounded-full text-sm font-semibold
+              bg-foreground text-background
+              hover:bg-[#383838] dark:hover:bg-[#ccc]"
+          >
+            {isPreview ? 'Show Code' : 'Preview HTML'}
+          </button>
         </div>
         
-        <textarea
-          value={fileContent}
-          onChange={(e) => setFileContent(e.target.value)}
-          className="w-full h-[80vh] p-4 font-mono text-sm
-            border rounded-lg
-            bg-white dark:bg-gray-800
-            border-gray-200 dark:border-gray-700
-            focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="File content will appear here..."
-        />
+        {isPreview ? (
+          <div 
+            className="w-full h-[80vh] p-4 overflow-auto border rounded-lg
+              bg-white dark:bg-gray-800
+              border-gray-200 dark:border-gray-700"
+            dangerouslySetInnerHTML={{ __html: fileContent }}
+          />
+        ) : (
+          <textarea
+            value={fileContent}
+            onChange={(e) => setFileContent(e.target.value)}
+            className="w-full h-[80vh] p-4 font-mono text-sm
+              border rounded-lg
+              bg-white dark:bg-gray-800
+              border-gray-200 dark:border-gray-700
+              focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="File content will appear here..."
+          />
+        )}
       </main>
     </div>
   );
