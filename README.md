@@ -1,32 +1,42 @@
-Эта страница представляет собой редактор HTML с двумя режимами просмотра. Вот основной функционал:
-Загрузка файла
-Есть кнопка для загрузки HTML файлов (.html, .htm)
-При загрузке файла его содержимое отображается в редакторе
-Два режима работы (переключаются кнопкой "Show Code"/"Preview HTML")
-Preview режим (по умолчанию):
-Отображает HTML в отрендеренном виде
-Позволяет редактировать контент визуально через contentEditable
-Изменения сразу отражаются в состоянии fileContent
-Code режим:
-Показывает HTML код в текстовом виде через textarea
-Позволяет напрямую редактировать HTML разметку
-Синхронизация контента
-Изменения в любом режиме синхронизируются между режимами
-При переключении режимов сохраняется последняя версия контента
-Сохранение позиции курсора
-Пытается сохранять позицию курсора при редактировании в Preview режиме
-Использует useEffect для восстановления позиции после обновления DOM
-Стилизация
-Адаптивный дизайн
-Поддержка темной темы
-Стилизованные кнопки и поля ввода
-Полноэкранный редактор с прокруткой
-Основные технические особенности:
-Использует React хуки (useState, useRef, useEffect)
-Работает с DOM API для управления выделением текста
-Использует FileReader для загрузки файлов
-Реализована обработка ошибок при работе с DOM
-Компонент работает на стороне клиента ("use client")
+# HTML Editor
+
+This page is an HTML editor with two viewing modes. Here are the main features:
+
+## File Loading
+- Button for uploading HTML files (.html, .htm)
+- File content is displayed in the editor upon loading
+
+## Two Operating Modes (toggled with "Show Code"/"Preview HTML" button)
+### Preview Mode (default):
+- Displays rendered HTML
+- Allows visual content editing through contentEditable
+- Changes are immediately reflected in the fileContent state
+
+### Code Mode:
+- Shows HTML code in text form via textarea
+- Allows direct HTML markup editing
+
+## Content Synchronization
+- Changes in any mode are synchronized between modes
+- The latest content version is preserved when switching modes
+
+## Cursor Position Preservation
+- Attempts to maintain cursor position when editing in Preview mode
+- Uses useEffect to restore position after DOM updates
+
+## Styling
+- Responsive design
+- Dark theme support
+- Styled buttons and input fields
+- Full-screen editor with scrolling
+
+## Technical Features
+- Uses React hooks (useState, useRef, useEffect)
+- Works with DOM API for text selection management
+- Uses FileReader for file loading
+- Implements error handling for DOM operations
+- Client-side component ("use client")
+- Component-based architecture for better maintainability
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
