@@ -14,142 +14,42 @@ export default function Home() {
     reader.onload = (e) => {
       const content = e.target?.result as string;
       setFileContent(content);
-      if (editorRef.current) {
-        editorRef.current.innerHTML = content;
-      }
     };
     reader.readAsText(file);
   };
 
-  const saveSelection = () => {
-    const selection = window.getSelection();
-    if (!selection?.rangeCount) return null;
-    
-    const range = selection.getRangeAt(0);
-    const preSelectionRange = range.cloneRange();
-    if (!editorRef.current) return null;
-    
-    preSelectionRange.selectNodeContents(editorRef.current);
-    preSelectionRange.setEnd(range.startContainer, range.startOffset);
-    const start = preSelectionRange.toString().length;
-
-    return {
-      start,
-      end: start + range.toString().length
-    };
-  };
-
-  const restoreSelection = (savedSel: { start: number; end: number } | null) => {
-
-    if (!savedSel || !editorRef.current) return;
-
-    const charIndex = (node: Node, index: number): { node: Node; offset: number } => {
-      let currentIndex = 0;
-
-      if (node.nodeType === Node.TEXT_NODE) {
-        const length = node.textContent?.length || 0;
-        if (currentIndex + length >= index) {
-          return { node, offset: index - currentIndex };
-        }
-        currentIndex += length;
-      } else {
-        for (const child of Array.from(node.childNodes)) {
-          const result = charIndex(child, index - currentIndex);
-          if (result) {
-            return result;
-          }
-          currentIndex += child.textContent?.length || 0;
-        }
-      }
-
-      return { node, offset: 0 };
-    };
-
-    const range = document.createRange();
-    const { node: startNode, offset: startOffset } = charIndex(editorRef.current, savedSel.start);
-    range.setStart(startNode, startOffset);
-
-    if (savedSel.end !== savedSel.start) {
-      const { node: endNode, offset: endOffset } = charIndex(editorRef.current, savedSel.end);
-      range.setEnd(endNode, endOffset);
-    }
-
-    const selection = window.getSelection();
-    selection?.removeAllRanges();
-    selection?.addRange(range);
-  };
-
-  const handleContentChange = () => {
-    if (!editorRef.current) return;
-    
-    // Сохраняем текущую позицию каретки относительно родительского элемента
-    const selection = window.getSelection();
-    const range = selection?.getRangeAt(0);
-    
-    if (!range) return;
-
-    // Находим смещение относительно редактируемого div
-    const preSelectionRange = range.cloneRange();
-    preSelectionRange.selectNodeContents(editorRef.current);
-    preSelectionRange.setEnd(range.startContainer, range.startOffset);
-    const position = preSelectionRange.toString().length;
-
-    // Обновляем контент
-    const newContent = editorRef.current.innerHTML;
-    setFileContent(newContent);
-    
-    // Восстанавливаем позицию каретки
-    requestAnimationFrame(() => {
-      const editor = editorRef.current;
-      if (!editor) return;
-
-      // Находим новый текстовый узел и смещение
-      let currentPosition = 0;
-      let targetNode: Node | null = null;
-      let targetOffset = 0;
-
-      const findPosition = (node: Node) => {
-        if (currentPosition > position) return true;
-
-        if (node.nodeType === Node.TEXT_NODE) {
-          const length = node.textContent?.length || 0;
-          if (currentPosition + length >= position) {
-            targetNode = node;
-            targetOffset = position - currentPosition;
-            return true;
-          }
-          currentPosition += length;
-        } else {
-          for (const child of Array.from(node.childNodes)) {
-            if (findPosition(child)) return true;
-          }
-        }
-        return false;
-      };
-
-      findPosition(editor);
-
-      if (targetNode) {
-        const newRange = document.createRange();
-        newRange.setStart(targetNode, targetOffset);
-        newRange.setEnd(targetNode, targetOffset);
-        
-        const selection = window.getSelection();
-        selection?.removeAllRanges();
-        selection?.addRange(newRange);
-      }
-    });
-  };
-
+  // Синхронизируем содержимое редактора с состоянием
   useEffect(() => {
-    if (isPreview && editorRef.current) {
-      const savedSelection = saveSelection();
+    if (editorRef.current && isPreview) {
+      const selection = window.getSelection();
+      const range = selection?.getRangeAt(0);
+      const offset = range?.startOffset || 0;
+      
       editorRef.current.innerHTML = fileContent;
-      requestAnimationFrame(() => {
-        restoreSelection(savedSelection);
-      });
+      
+      if (range && selection) {
+        try {
+          // Пытаемся восстановить позицию каретки
+          const newRange = document.createRange();
+          const textNode = editorRef.current.firstChild || editorRef.current;
+          const maxOffset = (textNode.textContent || '').length;
+          
+          newRange.setStart(textNode, Math.min(offset, maxOffset));
+          newRange.setEnd(textNode, Math.min(offset, maxOffset));
+          
+          selection.removeAllRanges();
+          selection.addRange(newRange);
+        } catch (e) {
+          console.error('Failed to restore caret position:', e);
+        }
+      }
     }
-  }, [isPreview, fileContent]);
+  }, [fileContent, isPreview]);
+
+  const handleContentChange = (event: React.FormEvent<HTMLDivElement>) => {
+    if (!editorRef.current) return;
+    setFileContent(editorRef.current.innerHTML);
+  };
 
   return (
     <div className="min-h-screen p-8">
@@ -182,6 +82,7 @@ export default function Home() {
             ref={editorRef}
             contentEditable
             onInput={handleContentChange}
+            suppressContentEditableWarning
             className="w-full h-[80vh] p-4 overflow-auto border rounded-lg
               bg-white dark:bg-gray-800
               border-gray-200 dark:border-gray-700
