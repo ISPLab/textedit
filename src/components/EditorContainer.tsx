@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, useRef } from 'react';
 
 interface EditorContainerProps {
@@ -40,6 +41,7 @@ export function EditorContainer({ isPreview, content, onContentChange }: EditorC
       }
     }
   }, [content, isPreview]);
+
 
   const handleContentChange = () => {
     if (!editorRef.current) return;

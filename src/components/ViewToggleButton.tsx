@@ -1,3 +1,4 @@
+"use client";
 interface ViewToggleButtonProps {
   isPreview: boolean;
   onToggle: () => void;

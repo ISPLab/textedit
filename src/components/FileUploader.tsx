@@ -1,3 +1,4 @@
+"use client";
 interface FileUploaderProps {
   onFileLoad: (content: string) => void;
 }
