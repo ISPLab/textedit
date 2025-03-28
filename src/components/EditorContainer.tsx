@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface EditorContainerProps {
   isPreview: boolean;
@@ -7,15 +7,32 @@ interface EditorContainerProps {
   onContentChange: (content: string) => void;
 }
 
+const CursorPositionDisplay = ({ position }: { position: number }) => {
+  return (
+    <div className="fixed bottom-4 right-4 flex gap-2 items-center bg-gray-100 p-2 rounded shadow-md z-50">
+      <span className="text-sm text-gray-600">
+        Cursor: {position}
+      </span>
+      <button
+        onClick={() => setCursorPosition(10)}
+        className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+      >
+        Set to 10
+      </button>
+    </div>
+  );
+};
+
 export function EditorContainer({ isPreview, content, onContentChange }: EditorContainerProps) {
   const editorRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [caretPosition, setCaretPosition] = useState(0);
 
   useEffect(() => {
     if (editorRef.current && isPreview) {
       const selection = window.getSelection();
       let offset = 0;
 
-      // Only try to get range if there is a selection and it has ranges
       if (selection && selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
         offset = range.startOffset;
@@ -23,7 +40,6 @@ export function EditorContainer({ isPreview, content, onContentChange }: EditorC
       
       editorRef.current.innerHTML = content;
       
-      // Only try to restore caret if there was a valid selection
       if (selection && selection.rangeCount > 0) {
         try {
           const newRange = document.createRange();
@@ -42,6 +58,17 @@ export function EditorContainer({ isPreview, content, onContentChange }: EditorC
     }
   }, [content, isPreview]);
 
+  const setCursorPosition = (position: number) => {
+    if (!textareaRef.current) return;
+    textareaRef.current.focus();
+    textareaRef.current.setSelectionRange(position, position);
+    setCaretPosition(position);
+  };
+
+  const handleSelectionChange = () => {
+    if (!textareaRef.current) return;
+    setCaretPosition(textareaRef.current.selectionStart);
+  };
 
   const handleContentChange = () => {
     if (!editorRef.current) return;
@@ -57,22 +84,30 @@ export function EditorContainer({ isPreview, content, onContentChange }: EditorC
 
   if (isPreview) {
     return (
-      <div 
-        ref={editorRef}
-        contentEditable
-        onInput={handleContentChange}
-        suppressContentEditableWarning
-        className={`${sharedClassNames} overflow-auto`}
-      />
+      <div>
+        <div 
+          ref={editorRef}
+          contentEditable
+          onInput={handleContentChange}
+          suppressContentEditableWarning
+          className={`${sharedClassNames} overflow-auto`}
+        />
+        <CursorPositionDisplay position={caretPosition} />
+      </div>
     );
   }
 
   return (
-    <textarea
-      value={content}
-      onChange={(e) => onContentChange(e.target.value)}
-      className={`${sharedClassNames} font-mono text-sm`}
-      placeholder="File content will appear here..."
-    />
+    <div className="relative">
+      <textarea
+        ref={textareaRef}
+        value={content}
+        onChange={(e) => onContentChange(e.target.value)}
+        onSelect={handleSelectionChange}
+        className={`${sharedClassNames} font-mono text-sm`}
+        placeholder="File content will appear here..."
+      />
+      <CursorPositionDisplay position={caretPosition} />
+    </div>
   );
 } 

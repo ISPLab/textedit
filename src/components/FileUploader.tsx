@@ -1,10 +1,12 @@
 "use client";
+import { ChangeEvent } from 'react';
+
 interface FileUploaderProps {
   onFileLoad: (content: string) => void;
 }
 
 export function FileUploader({ onFileLoad }: FileUploaderProps) {
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
