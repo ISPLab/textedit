@@ -1,5 +1,7 @@
 # HTML Editor
 
+![HTML Editor Screenshot](main.png)
+
 This page is an HTML editor with two viewing modes. Here are the main features:
 
 ## File Loading
