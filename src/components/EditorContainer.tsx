@@ -13,6 +13,7 @@ export function EditorContainer({ isPreview, content, onContentChange }: EditorC
   useEffect(() => {
     if (editorRef.current && isPreview) {
       const selection = window.getSelection();
+      console.log("useEffect",selection);
       let offset = 0;
 
       // Only try to get range if there is a selection and it has ranges
@@ -26,6 +27,7 @@ export function EditorContainer({ isPreview, content, onContentChange }: EditorC
       // Only try to restore caret if there was a valid selection
       if (selection && selection.rangeCount > 0) {
         try {
+          console.log("try restore caret position");
           const newRange = document.createRange();
           const textNode = editorRef.current.firstChild || editorRef.current;
           const maxOffset = (textNode.textContent || '').length;
@@ -45,6 +47,8 @@ export function EditorContainer({ isPreview, content, onContentChange }: EditorC
 
   const handleContentChange = () => {
     if (!editorRef.current) return;
+    console.log("handleContentChange",editorRef.current.innerHTML);
+
     onContentChange(editorRef.current.innerHTML);
   };
 
@@ -57,13 +61,17 @@ export function EditorContainer({ isPreview, content, onContentChange }: EditorC
 
   if (isPreview) {
     return (
+      <>
       <div 
         ref={editorRef}
-        contentEditable
-        onInput={handleContentChange}
+        contentEditable        
         suppressContentEditableWarning
         className={`${sharedClassNames} overflow-auto`}
       />
+      <div>
+        <button onClick={handleContentChange}>Save</button>
+      </div>
+      </>
     );
   }
 
