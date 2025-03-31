@@ -1,6 +1,6 @@
 # HTML Editor
 
-![HTML Editor Screenshot](main.png)
+![HTML Editor Screenshot](screenshots/main.png)
 
 This page is an HTML editor with two viewing modes. Here are the main features:
 
