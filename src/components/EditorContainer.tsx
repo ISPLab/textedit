@@ -74,7 +74,7 @@ export function EditorContainer({ isPreview, content, onContentChange }: EditorC
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (contextMenu && !event.target?.closest('.context-menu')) {
+      if (contextMenu && !(event.target as Element)?.closest('.context-menu')) {
         setContextMenu(null);
       }
     };
@@ -112,10 +112,6 @@ export function EditorContainer({ isPreview, content, onContentChange }: EditorC
     border-gray-200 dark:border-gray-700
     focus:outline-none focus:ring-2 focus:ring-blue-500
   `;
-  
-  const handleInput = () => {
-    setIsSaved(false);
-  };
 
   if (isPreview) {
     return (
@@ -125,7 +121,6 @@ export function EditorContainer({ isPreview, content, onContentChange }: EditorC
           contentEditable        
           suppressContentEditableWarning
           onContextMenu={handleContextMenu}
-          onInput={handleInput} 
           className={`${sharedClassNames} overflow-auto`}
         />
         {contextMenu && (
