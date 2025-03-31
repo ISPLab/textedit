@@ -1,5 +1,31 @@
 "use client";
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+interface ContextMenuProps {
+  x: number;
+  y: number;
+  onBold: () => void;
+  onClose: () => void;
+}
+
+const ContextMenu = ({ x, y, onBold, onClose }: ContextMenuProps) => {
+  return (
+    <div 
+      className="fixed bg-white dark:bg-gray-700 shadow-lg rounded-lg py-2 min-w-[120px] z-50"
+      style={{ left: x, top: y }}
+    >
+      <button
+        className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-600"
+        onClick={() => {
+          onBold();
+          onClose();
+        }}
+      >
+        Bold
+      </button>
+    </div>
+  );
+};
 
 interface EditorContainerProps {
   isPreview: boolean;
@@ -9,6 +35,8 @@ interface EditorContainerProps {
 
 export function EditorContainer({ isPreview, content, onContentChange }: EditorContainerProps) {
   const editorRef = useRef<HTMLDivElement>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [isSaved, setIsSaved] = useState(true);
 
   useEffect(() => {
     if (editorRef.current && isPreview) {
@@ -44,12 +72,38 @@ export function EditorContainer({ isPreview, content, onContentChange }: EditorC
     }
   }, [content, isPreview]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (contextMenu && !event.target?.closest('.context-menu')) {
+        setContextMenu(null);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [contextMenu]);
+
+  useEffect(() => {
+    setIsSaved(false);
+  }, [content]);
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const selection = window.getSelection();
+    if (selection && selection.toString().length > 0) {
+      setContextMenu({ x: e.clientX, y: e.clientY });
+    }
+  };
+
+  const handleBold = () => {
+    document.execCommand('bold', false);
+  };
 
   const handleContentChange = () => {
     if (!editorRef.current) return;
-    console.log("handleContentChange",editorRef.current.innerHTML);
-
+    console.log("handleContentChange", editorRef.current.innerHTML);
     onContentChange(editorRef.current.innerHTML);
+    setIsSaved(true);
   };
 
   const sharedClassNames = `
@@ -58,19 +112,45 @@ export function EditorContainer({ isPreview, content, onContentChange }: EditorC
     border-gray-200 dark:border-gray-700
     focus:outline-none focus:ring-2 focus:ring-blue-500
   `;
+  
+  const handleInput = () => {
+    setIsSaved(false);
+  };
 
   if (isPreview) {
     return (
       <>
-      <div 
-        ref={editorRef}
-        contentEditable        
-        suppressContentEditableWarning
-        className={`${sharedClassNames} overflow-auto`}
-      />
-      <div>
-        <button onClick={handleContentChange}>Save</button>
-      </div>
+        <div 
+          ref={editorRef}
+          contentEditable        
+          suppressContentEditableWarning
+          onContextMenu={handleContextMenu}
+          onInput={handleInput} 
+          className={`${sharedClassNames} overflow-auto`}
+        />
+        {contextMenu && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            onBold={handleBold}
+            onClose={() => setContextMenu(null)}
+          />
+        )}
+        <div className="flex justify-end mt-4">
+          <button
+            onClick={handleContentChange}
+            disabled={isSaved}
+            className={`
+              px-4 py-2 rounded-md transition-colors
+              ${isSaved 
+                ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
+                : 'bg-white-500 text-white hover:bg-white-600 dark:bg-white-600 dark:hover:bg-white-700'
+              }
+            `}
+          >
+            {isSaved ? 'Saved' : 'Save'}
+          </button>
+        </div>
       </>
     );
   }
